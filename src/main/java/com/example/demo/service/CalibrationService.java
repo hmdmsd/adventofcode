@@ -6,46 +6,55 @@ import java.util.List;
 
 @Service
 public class CalibrationService {
-    private final PartOneCalculator partOneCalculator;
-    private final PartTwoCalculator partTwoCalculator;
+    private final Day1PartOneCalculator day1Part1Calculator;
+    private final Day1PartTwoCalculator day1Part2Calculator;
+    private final Day3PartOneCalculator day3Part1Calculator;
+    private final Day3PartTwoCalculator day3Part2Calculator;
     private final FileReader fileReader;
 
-    public CalibrationService(PartOneCalculator partOneCalculator,
-                              PartTwoCalculator partTwoCalculator,
-                              FileReader fileReader) {
-        this.partOneCalculator = partOneCalculator;
-        this.partTwoCalculator = partTwoCalculator;
+    public CalibrationService(
+            Day1PartOneCalculator day1Part1Calculator,
+            Day1PartTwoCalculator day1Part2Calculator,
+            Day3PartOneCalculator day3Part1Calculator,
+            Day3PartTwoCalculator day3Part2Calculator,
+            FileReader fileReader) {
+        this.day1Part1Calculator = day1Part1Calculator;
+        this.day1Part2Calculator = day1Part2Calculator;
+        this.day3Part1Calculator = day3Part1Calculator;
+        this.day3Part2Calculator = day3Part2Calculator;
         this.fileReader = fileReader;
     }
 
-    public void processCalibrationDocument(String filename) {
-        List<String> input = fileReader.readFile(filename);
+    public int calculateResult(int day, int part) {
+        String inputFileName = String.format("day%d.txt", day);
+        List<String> input = fileReader.readFile(inputFileName);
+
         if (input.isEmpty()) {
-            System.out.println("No input data found!");
-            return;
+            throw new RuntimeException("No input data found for day " + day);
         }
 
-        // Process Part 1
-        int part1Result = partOneCalculator.calculateSum(input);
-        System.out.println("Part 1 Result: " + part1Result);
-
-        // Process Part 2
-        int part2Result = partTwoCalculator.calculateSum(input);
-        System.out.println("Part 2 Result: " + part2Result);
+        return switch (day) {
+            case 1 -> part == 1 ? day1Part1Calculator.calculateSum(input)
+                    : day1Part2Calculator.calculateSum(input);
+            case 3 -> part == 1 ? day3Part1Calculator.calculateSum(input)
+                    : day3Part2Calculator.calculateSum(input);
+            default -> throw new UnsupportedOperationException(
+                    "Day " + day + " Part " + part + " not implemented yet");
+        };
     }
 
     public void runTests() {
-        // Test Part 1
-        List<String> testInput1 = List.of(
+        // Day 1 tests
+        List<String> day1TestInput1 = List.of(
                 "1abc2",
                 "pqr3stu8vwx",
                 "a1b2c3d4e5f",
                 "treb7uchet"
         );
-        System.out.println("Part 1 Test Result: " + partOneCalculator.calculateSum(testInput1));
+        System.out.println("Day 1 Part 1 Test Result: " +
+                day1Part1Calculator.calculateSum(day1TestInput1));
 
-        // Test Part 2
-        List<String> testInput2 = List.of(
+        List<String> day1TestInput2 = List.of(
                 "two1nine",
                 "eightwothree",
                 "abcone2threexyz",
@@ -54,6 +63,25 @@ public class CalibrationService {
                 "zoneight234",
                 "7pqrstsixteen"
         );
-        System.out.println("Part 2 Test Result: " + partTwoCalculator.calculateSum(testInput2));
+        System.out.println("Day 1 Part 2 Test Result: " +
+                day1Part2Calculator.calculateSum(day1TestInput2));
+
+        // Day 3 tests
+        List<String> day3TestInput = List.of(
+                "467..114..",
+                "...*......",
+                "..35..633.",
+                "......#...",
+                "617*......",
+                ".....+.58.",
+                "..592.....",
+                "......755.",
+                "...$.*....",
+                ".664.598.."
+        );
+        System.out.println("Day 3 Part 1 Test Result: " +
+                day3Part1Calculator.calculateSum(day3TestInput));
+        System.out.println("Day 3 Part 2 Test Result: " +
+                day3Part2Calculator.calculateSum(day3TestInput));
     }
 }

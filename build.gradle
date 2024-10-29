@@ -18,11 +18,48 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
+	// Spring Boot Starters
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'  // Added for validation
+
+	// Spring Boot DevTools for development
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// Lombok to reduce boilerplate code
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Testing dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Optional: Add these if you need them
+	// implementation 'org.springframework.boot:spring-boot-starter-actuator'  // For monitoring and metrics
+	// implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'  // For Swagger/OpenAPI documentation
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Add configuration for Spring Boot DevTools
+configurations {
+	developmentOnly
+	runtimeClasspath {
+		extendsFrom developmentOnly
+	}
+}
+
+// Optional: Configure Java compiler options
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+	options.compilerArgs += ['-parameters']
+}
+
+// Optional: Configure test logging
+test {
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat = 'full'
+	}
 }

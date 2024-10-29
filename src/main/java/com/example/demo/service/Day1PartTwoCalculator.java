@@ -1,11 +1,12 @@
 package com.example.demo.service;
 
+import lombok.Data;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
 @Component
-public class PartTwoCalculator {
+public class Day1PartTwoCalculator {
     private static final Map<String, String> NUMBER_WORDS = Map.of(
             "one", "1",
             "two", "2",

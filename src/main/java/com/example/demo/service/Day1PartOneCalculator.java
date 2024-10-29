@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class PartOneCalculator {
+public class Day1PartOneCalculator {
     public int calculateSum(List<String> input) {
         return input.stream()
                 .mapToInt(this::getCalibrationValue)
