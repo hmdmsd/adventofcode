@@ -6,64 +6,70 @@ import java.util.*;
 @Component
 public class Day5PartTwoCalculator {
     private static class Range {
-        long destStart;
-        long sourceStart;
-        long length;
+        long start;
+        long end;
+        long offset;
 
         Range(long destStart, long sourceStart, long length) {
-            this.destStart = destStart;
-            this.sourceStart = sourceStart;
-            this.length = length;
+            this.start = sourceStart;
+            this.end = sourceStart + length;
+            this.offset = destStart - sourceStart;
         }
 
-        boolean containsSource(long number) {
-            return number >= sourceStart && number < sourceStart + length;
+        boolean contains(long number) {
+            return number >= start && number < end;
         }
 
         long convert(long number) {
-            return destStart + (number - sourceStart);
+            return number + offset;
         }
     }
 
-    private static class SeedRange {
+    private static class RangeWindow {
         long start;
-        long length;
+        long end;
 
-        SeedRange(long start, long length) {
+        RangeWindow(long start, long end) {
             this.start = start;
-            this.length = length;
+            this.end = end;
         }
     }
 
     public long calculateLowestLocation(List<String> input) {
         // Parse seed ranges
-        List<SeedRange> seedRanges = parseSeedRanges(input.get(0));
+        List<RangeWindow> seedRanges = parseSeedRanges(input.get(0));
 
-        // Parse all maps
+        // Parse all conversion maps
         List<List<Range>> allMaps = parseMaps(input);
 
-        // Find lowest location by processing each seed range
+        // Process ranges through each map
         long lowestLocation = Long.MAX_VALUE;
+        for (RangeWindow seedRange : seedRanges) {
+            List<RangeWindow> currentRanges = new ArrayList<>();
+            currentRanges.add(seedRange);
 
-        // Process each seed in each range
-        for (SeedRange seedRange : seedRanges) {
-            for (long seed = seedRange.start; seed < seedRange.start + seedRange.length; seed++) {
-                long location = processSeed(seed, allMaps);
-                lowestLocation = Math.min(lowestLocation, location);
+            // Process through each map
+            for (List<Range> map : allMaps) {
+                currentRanges = processRanges(currentRanges, map);
+            }
+
+            // Find minimum from processed ranges
+            for (RangeWindow range : currentRanges) {
+                lowestLocation = Math.min(lowestLocation, range.start);
             }
         }
 
         return lowestLocation;
     }
 
-    private List<SeedRange> parseSeedRanges(String seedLine) {
+    private List<RangeWindow> parseSeedRanges(String seedLine) {
         String[] parts = seedLine.split(": ")[1].trim().split(" ");
-        List<SeedRange> ranges = new ArrayList<>();
+        List<RangeWindow> ranges = new ArrayList<>();
 
         for (int i = 0; i < parts.length; i += 2) {
             long start = Long.parseLong(parts[i]);
             long length = Long.parseLong(parts[i + 1]);
-            ranges.add(new SeedRange(start, length));
+            ranges.add(new RangeWindow(start, start + length));
         }
 
         return ranges;
@@ -76,12 +82,11 @@ public class Day5PartTwoCalculator {
         for (int i = 2; i < input.size(); i++) {
             String line = input.get(i).trim();
 
-            if (line.isEmpty()) {
-                continue;
-            }
+            if (line.isEmpty()) continue;
 
             if (line.endsWith("map:")) {
                 if (currentMap != null) {
+                    sortRanges(currentMap);
                     allMaps.add(currentMap);
                 }
                 currentMap = new ArrayList<>();
@@ -101,33 +106,61 @@ public class Day5PartTwoCalculator {
         }
 
         if (currentMap != null) {
+            sortRanges(currentMap);
             allMaps.add(currentMap);
         }
 
         return allMaps;
     }
 
-    private long processSeed(long number, List<List<Range>> allMaps) {
-        // Process the number through each map in sequence
-        for (List<Range> map : allMaps) {
-            number = processMap(number, map);
-        }
-        return number;
+    private void sortRanges(List<Range> ranges) {
+        ranges.sort((a, b) -> Long.compare(a.start, b.start));
     }
 
-    private long processMap(long number, List<Range> ranges) {
-        // Find the range that contains our number
-        for (Range range : ranges) {
-            if (range.containsSource(number)) {
-                return range.convert(number);
+    private List<RangeWindow> processRanges(List<RangeWindow> inputRanges, List<Range> mappingRanges) {
+        List<RangeWindow> resultRanges = new ArrayList<>();
+
+        for (RangeWindow inputRange : inputRanges) {
+            long current = inputRange.start;
+
+            while (current < inputRange.end) {
+                Range mappingRange = null;
+
+                // Find the applicable mapping range
+                for (Range range : mappingRanges) {
+                    if (range.contains(current)) {
+                        mappingRange = range;
+                        break;
+                    }
+                    if (range.start > current) {
+                        break;
+                    }
+                }
+
+                if (mappingRange != null) {
+                    // Apply the mapping
+                    long rangeEnd = Math.min(inputRange.end, mappingRange.end);
+                    resultRanges.add(new RangeWindow(
+                            mappingRange.convert(current),
+                            mappingRange.convert(rangeEnd - 1) + 1
+                    ));
+                    current = rangeEnd;
+                } else {
+                    // Find next mapping range or end of input range
+                    long nextStart = inputRange.end;
+                    for (Range range : mappingRanges) {
+                        if (range.start > current) {
+                            nextStart = Math.min(nextStart, range.start);
+                            break;
+                        }
+                    }
+                    resultRanges.add(new RangeWindow(current, Math.min(nextStart, inputRange.end)));
+                    current = nextStart;
+                }
             }
         }
-        // If no range contains the number, it maps to itself
-        return number;
+
+        return resultRanges;
     }
 
-    // This method is used by CalibrationService
-    public int calculateSum(List<String> input) {
-        return (int) calculateLowestLocation(input);
-    }
 }
