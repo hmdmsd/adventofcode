@@ -10,6 +10,8 @@ public class CalibrationService {
     private final Day1PartTwoCalculator day1Part2Calculator;
     private final Day3PartOneCalculator day3Part1Calculator;
     private final Day3PartTwoCalculator day3Part2Calculator;
+    private final Day5PartOneCalculator day5Part1Calculator;
+    private final Day5PartTwoCalculator day5Part2Calculator;
     private final FileReader fileReader;
 
     public CalibrationService(
@@ -17,11 +19,16 @@ public class CalibrationService {
             Day1PartTwoCalculator day1Part2Calculator,
             Day3PartOneCalculator day3Part1Calculator,
             Day3PartTwoCalculator day3Part2Calculator,
+            Day5PartOneCalculator day5Part1Calculator,
+            Day5PartTwoCalculator day5Part2Calculator,
+
             FileReader fileReader) {
         this.day1Part1Calculator = day1Part1Calculator;
         this.day1Part2Calculator = day1Part2Calculator;
         this.day3Part1Calculator = day3Part1Calculator;
         this.day3Part2Calculator = day3Part2Calculator;
+        this.day5Part1Calculator = day5Part1Calculator;
+        this.day5Part2Calculator = day5Part2Calculator;
         this.fileReader = fileReader;
     }
 
@@ -38,6 +45,8 @@ public class CalibrationService {
                     : day1Part2Calculator.calculateSum(input);
             case 3 -> part == 1 ? day3Part1Calculator.calculateSum(input)
                     : day3Part2Calculator.calculateSum(input);
+            case 5 -> part == 1 ? (int) day5Part1Calculator.calculateLowestLocation(input)
+                    : (int) day5Part2Calculator.calculateLowestLocation(input);
             default -> throw new UnsupportedOperationException(
                     "Day " + day + " Part " + part + " not implemented yet");
         };
